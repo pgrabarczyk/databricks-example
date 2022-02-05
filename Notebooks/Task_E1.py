@@ -115,6 +115,20 @@ Command took 11.47 seconds
 
 # MAGIC %md
 # MAGIC 
+# MAGIC ### Difference with files
+# MAGIC 
+# MAGIC It's worth to take a look on S3 bucket files. In case of Crypto_Markets_With_Partitioning, there are multiple folders for each partition.
+# MAGIC 
+# MAGIC 
+# MAGIC | Table name  | Folders |
+# MAGIC |---|---|---|
+# MAGIC | `Crypto_Markets_Without_Partitioning` | ![Crypto_Markets_Without_Partitioning.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/TaskE1/Crypto_Markets_Without_Partitioning.PNG) |
+# MAGIC | `Crypto_Markets_With_Partitioning` | ![Crypto_Markets_With_Partitioning.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/TaskE1/Crypto_Markets_With_Partitioning.PNG) |
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
 # MAGIC ## Performance tests
 # MAGIC 
 # MAGIC Let's execute two queries type. First, filtering by one symbol, Second without filtering.
@@ -213,12 +227,6 @@ Command took 11.47 seconds
 # MAGIC | `Crypto_Markets_With_Partitioning` | 0.75s | 0.51s | 0.48s | 0.49s  | 0.46s |
 # MAGIC 
 # MAGIC There is no observation for such little data & tests execution.
-
-# COMMAND ----------
-
-TODO
-
-Screenshoots about S3 files.
 
 # COMMAND ----------
 
