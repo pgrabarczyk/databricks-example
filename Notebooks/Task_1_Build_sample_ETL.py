@@ -36,13 +36,13 @@
 ### Create S3 bucket
 
 ```bash
-export S3_BUCKET_NAME=pgrabarczyk-test-data
+export S3_Test_Data=pgrabarczyk-test-data
 # Create bucket... I've done it manually...
 ```
 
 ### Download locally https://www.kaggle.com/divyansh22/flight-delay-prediction, then upload to S3 bucket
 ```bash
-$ aws s3 ls $S3_BUCKET_NAME/January_Flight_Delay_Prediction/
+$ aws s3 ls $S3_Test_Data/January_Flight_Delay_Prediction/
 2022-02-04 13:08:39   76028274 Jan_2019_ontime.csv
 2022-02-04 13:08:39   79258578 Jan_2020_ontime.csv
 ```
@@ -62,7 +62,7 @@ $ aws s3 ls $S3_BUCKET_NAME/January_Flight_Delay_Prediction/
 
 # MAGIC %python
 # MAGIC 
-# MAGIC # Keys for user pgrabarczyk-databricks which has access to S3 buckets only ... yes I know I should use IAM roles... it's just an sandbox env...
+# MAGIC # Keys for user which has access to S3 buckets only ... yes I know I should use IAM roles... it's just an sandbox env...
 # MAGIC access_key = 'XXXX'
 # MAGIC secret_key = 'XXXX'
 # MAGIC 
@@ -142,7 +142,7 @@ $ aws s3 ls $S3_BUCKET_NAME/January_Flight_Delay_Prediction/
 # MAGIC 
 # MAGIC CREATE TABLE Bronze_Flight_Delay_Prediction
 # MAGIC USING CSV
-# MAGIC LOCATION "/bronze/Flight_Delay_Prediction"
+# MAGIC LOCATION "/task_1/bronze/Flight_Delay_Prediction"
 # MAGIC AS (
 # MAGIC   SELECT *
 # MAGIC   FROM Flight_Delay_Prediction
@@ -232,7 +232,7 @@ $ aws s3 ls $S3_BUCKET_NAME/January_Flight_Delay_Prediction/
 # MAGIC 
 # MAGIC CREATE TABLE Silver_Flight_Cancelled                    -- We want to know if flight from Origin has been cancelled, that's why name changed
 # MAGIC USING DELTA
-# MAGIC LOCATION "/silver/Flight_Cancelled"
+# MAGIC LOCATION "/task_1/silver/Flight_Cancelled"
 # MAGIC AS (
 # MAGIC   SELECT ORIGIN, CANCELLED
 # MAGIC   FROM Bronze_Flight_Delay_Prediction
@@ -286,7 +286,7 @@ $ aws s3 ls $S3_BUCKET_NAME/January_Flight_Delay_Prediction/
 # MAGIC 
 # MAGIC CREATE TABLE Gold_Flight_Cancelled
 # MAGIC USING DELTA
-# MAGIC LOCATION "/gold/Flight_Cancelled"
+# MAGIC LOCATION "/task_1/gold/Flight_Cancelled"
 # MAGIC AS (
 # MAGIC   SELECT ORIGIN,
 # MAGIC       SUM(CASE WHEN CANCELLED = 0 THEN 1 ELSE 0 END) AS CANCELLED,

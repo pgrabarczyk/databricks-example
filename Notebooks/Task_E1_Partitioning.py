@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC 
-# MAGIC # Task Extra 1
+# MAGIC # Task Extra 1 Partitioning
 # MAGIC 
 # MAGIC 
 # MAGIC Dataset used for this task: https://www.kaggle.com/jessevent/all-crypto-currencies/download
@@ -72,7 +72,7 @@
 # MAGIC 
 # MAGIC CREATE TABLE Crypto_Markets_Without_Partitioning
 # MAGIC USING DELTA
-# MAGIC LOCATION "/e1/Crypto_Markets_Without_Partitioning"
+# MAGIC LOCATION "/task_e1/Crypto_Markets_Without_Partitioning"
 # MAGIC AS (
 # MAGIC   SELECT *
 # MAGIC   FROM Crypto_Markets
@@ -95,7 +95,7 @@ Command took 10.15 seconds
 # MAGIC CREATE TABLE Crypto_Markets_With_Partitioning
 # MAGIC USING DELTA
 # MAGIC PARTITIONED BY (symbol)
-# MAGIC LOCATION "/e1/Crypto_Markets_With_Partitioning"
+# MAGIC LOCATION "/task_e1/Crypto_Markets_With_Partitioning"
 # MAGIC AS (
 # MAGIC   SELECT *
 # MAGIC   FROM Crypto_Markets
