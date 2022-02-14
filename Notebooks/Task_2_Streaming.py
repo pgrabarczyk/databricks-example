@@ -7,8 +7,6 @@
 # MAGIC 
 # MAGIC **Build ETL with streaming data (auto-update)**
 # MAGIC 
-# MAGIC TODO
-# MAGIC 
 # MAGIC ![Databricks_sample-Task_2.png](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task2/Databricks_sample-Task_2.png)
 # MAGIC 
 # MAGIC ### Subtasks:
