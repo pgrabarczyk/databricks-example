@@ -45,7 +45,7 @@
 # MAGIC 
 # MAGIC ### 4.1.2 Create AWS EC2 and setup PostgreSQL, Debezium, Apache Zookeeper, Apache Kafka
 # MAGIC 
-# MAGIC I'll use [this blog post](https://www.startdataengineering.com/post/change-data-capture-using-debezium-kafka-and-pg/) to setup environment. Authors done great job there.
+# MAGIC I'll use [Debezium documentation](https://debezium.io/documentation/reference/stable/tutorial.html) and [this blog post](https://www.startdataengineering.com/post/change-data-capture-using-debezium-kafka-and-pg/) to setup environment.
 # MAGIC 
 # MAGIC I'm using AWS Session Manager to jump on EC2.
 # MAGIC 
@@ -56,7 +56,7 @@
 # MAGIC cd $(mktemp -d)
 # MAGIC ```
 # MAGIC 
-# MAGIC You can copy below scripts as files and execute them (e.g.: ```bash execute.sh```) or execute it line by line in your terminal.
+# MAGIC You can save below script as file and execute it (e.g.: ```bash docker.sh```) or execute it line by line in your terminal.
 
 # COMMAND ----------
 
@@ -91,42 +91,32 @@ docker run hello-world
 
 # COMMAND ----------
 
-#!/usr/bin/env bash
-# execute.sh
-set -eu
-
-# Setup Postgres
-docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=start_data_engineer -e POSTGRES_PASSWORD=password debezium/postgres:12
-
-# Setup zookeeper & kafka
-docker run -d --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 debezium/zookeeper:1.1
-docker run -d --name kafka -p 9092:9092 --link zookeeper:zookeeper debezium/kafka:1.1
-            
-docker run -d --name connect -p 8083:8083 --link kafka:kafka \
---link postgres:postgres -e BOOTSTRAP_SERVERS=kafka:9092 \
--e GROUP_ID=sde_group -e CONFIG_STORAGE_TOPIC=sde_storage_topic \
--e OFFSET_STORAGE_TOPIC=sde_offset_topic debezium/connect:1.1
-                    
-# curl -H "Accept:application/json" localhost:8083/connectors/
-
-curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" \
-localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.class": "io.debezium.connector.postgresql.PostgresConnector", "database.hostname": "postgres", "database.port": "5432", "database.user": "start_data_engineer", "database.password": "password", "database.dbname" : "start_data_engineer", "database.server.name": "bankserver1", "table.whitelist": "bank.holding"}}'
-    
-# curl -H "Accept:application/json" localhost:8083/connectors/
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC 
-# MAGIC Ok, we should be ready. Add some data to the DB. (Still executed from our EC2)
+# MAGIC Now setup IP address of your EC2 instance, in my case it's '10.225.181.154' and export it.
+# MAGIC 
+# MAGIC ```bash
+# MAGIC export ADVERTISED_HOST_NAME=10.225.181.154
+# MAGIC ```
+# MAGIC 
+# MAGIC Copy below one by line (specially part of setting DB rows).
 
 # COMMAND ----------
 
 # MAGIC %sh
 # MAGIC 
+# MAGIC # Setup Postgres
+# MAGIC docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=start_data_engineer -e POSTGRES_PASSWORD=password debezium/postgres:12
+# MAGIC 
+# MAGIC # Setup zookeeper & kafka
+# MAGIC docker run -d --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 debezium/zookeeper:1.1
+# MAGIC docker run -d --name kafka -p 9092:9092 -e ADVERTISED_HOST_NAME --link zookeeper:zookeeper debezium/kafka:1.1 
+# MAGIC 
 # MAGIC ## Add data to Postgres
 # MAGIC sudo apt-get install -y pgcli jq   
+# MAGIC 
 # MAGIC PGPASSWORD=password pgcli -h localhost -p 5432 -U start_data_engineer
+# MAGIC 
 # MAGIC CREATE SCHEMA bank;
 # MAGIC SET search_path TO bank,public;
 # MAGIC CREATE TABLE bank.holding (
@@ -141,10 +131,26 @@ localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.c
 # MAGIC ALTER TABLE bank.holding replica identity FULL;
 # MAGIC insert into bank.holding values (1000, 1, 'VFIAX', 10, now(), now());
 # MAGIC \q
+# MAGIC # then 'y'
+# MAGIC 
+# MAGIC docker run -d --name connect -p 8083:8083 --link kafka:kafka \
+# MAGIC --link postgres:postgres -e BOOTSTRAP_SERVERS=kafka:9092 \
+# MAGIC -e GROUP_ID=sde_group -e CONFIG_STORAGE_TOPIC=sde_storage_topic \
+# MAGIC -e OFFSET_STORAGE_TOPIC=sde_offset_topic debezium/connect:1.1
+# MAGIC 
+# MAGIC sleep 10 # or you can just wait...
+# MAGIC 
+# MAGIC curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.class": "io.debezium.connector.postgresql.PostgresConnector", "database.hostname": "postgres", "database.port": "5432", "database.user": "start_data_engineer", "database.password": "password", "database.dbname" : "start_data_engineer", "database.server.name": "bankserver1", "table.whitelist": "bank.holding"}}'
+# MAGIC 
+# MAGIC # curl -H "Accept:application/json" localhost:8083/connectors/
 # MAGIC 
 # MAGIC # Test if data has been added
 # MAGIC 
 # MAGIC docker run -it --rm --name consumer --link zookeeper:zookeeper --link kafka:kafka debezium/kafka:1.1 watch-topic -a bankserver1.bank.holding --max-messages 1 | grep '^{' | jq
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -226,8 +232,22 @@ localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.c
 # MAGIC %sh
 # MAGIC 
 # MAGIC # ping -c 1 $EC2_IP
-# MAGIC sudo apt-get install -y netcat > /dev/null
+# MAGIC # sudo apt-get install -y netcat > /dev/null
 # MAGIC netcat -zv $EC2_IP $KAFKA_PORT
+# MAGIC 
+# MAGIC 
+# MAGIC # Test from Other EC2
+# MAGIC #export EC2_IP='10.225.181.154'
+# MAGIC #export KAFKA_PORT=9092
+# MAGIC #export KAFKA_TOPIC='bankserver1.bank.holding'
+# MAGIC 
+# MAGIC #apt update && apt install -y default-jdk
+# MAGIC #java --version
+# MAGIC #cd $(mktemp -d)
+# MAGIC #wget https://dlcdn.apache.org/kafka/3.1.0/kafka_2.13-3.1.0.tgz
+# MAGIC #tar -xzf kafka_2.13-3.1.0.tgz
+# MAGIC #cd kafka_2.13-3.1.0
+# MAGIC #bin/kafka-console-consumer.sh --topic $KAFKA_TOPIC --from-beginning --bootstrap-server $EC2_IP:$KAFKA_PORT
 
 # COMMAND ----------
 
@@ -246,8 +266,8 @@ localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.c
 # MAGIC #   .option("startingOffsets", "latest")                          # read data from the end of the stream 
 # MAGIC #   .option("minPartitions", "1")  
 # MAGIC #   .option("failOnDataLoss", "true")
-# MAGIC #   .load(table_path_bronze)                                      # f'{dest_dir}/bronze/Bank_Holding'
-# MAGIC #   .createOrReplaceTempView('Bronze_Bank_Holding'))
+# MAGIC 
+# MAGIC 
 # MAGIC 
 # MAGIC df = spark \
 # MAGIC   .readStream \
@@ -256,11 +276,7 @@ localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.c
 # MAGIC   .option("subscribe", KAFKA_TOPIC)   \
 # MAGIC   .option("startingOffsets", "earliest") \
 # MAGIC   .load()
-# MAGIC #   .selectExpr()
 # MAGIC 
-# MAGIC df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-# MAGIC # display(df)
-# MAGIC # df.printSchema()
 # MAGIC # display(df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)"))
 
 # COMMAND ----------
@@ -287,3 +303,17 @@ localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.c
 # MAGIC %sql
 # MAGIC 
 # MAGIC SELECT * FROM Bronze_Bank_Holding;
+
+# COMMAND ----------
+
+# MAGIC %python
+# MAGIC 
+# MAGIC TODO
+# MAGIC 
+# MAGIC # Write key-value data from a DataFrame to Kafka using a topic specified in the data
+# MAGIC ds = df \
+# MAGIC   .selectExpr("topic", "CAST(key AS STRING)", "CAST(value AS STRING)") \
+# MAGIC   .writeStream \
+# MAGIC   .format("kafka") \
+# MAGIC   .option("kafka.bootstrap.servers", "host1:port1,host2:port2") \
+# MAGIC   .start()
