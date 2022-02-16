@@ -15,9 +15,9 @@
 # MAGIC   * 4.1.2 Create AWS EC2 and setup PostgreSQL, Debezium, Apache Zookeeper, Apache Kafka
 # MAGIC   * 4.1.3 Create Amazon Redshift
 # MAGIC * 4.2 Main Goal
-# MAGIC   * 3.2.1 Create Bronze Table to gather data from Apache Kafka as it is
-# MAGIC   * 3.2.2 Stream and transform data from Bronze Table to Silver Table. Silver table should contain parsed data
-# MAGIC   * 3.2.3 Stream and transform data from Silver Table to Gold Table. Gold table should contain data ready to consume by Amazon Redshift.
+# MAGIC   * 4.2.1 Create Bronze Table to gather data from Apache Kafka as it is
+# MAGIC   * 4.2.2 Stream and transform data from Bronze Table to Silver Table. Silver table should contain parsed data
+# MAGIC   * 4.2.3 Stream and transform data from Silver Table to Gold Table. Gold table should contain data ready to consume by Amazon Redshift.
 
 # COMMAND ----------
 
@@ -156,6 +156,134 @@ localhost:8083/connectors/ -d '{"name": "sde-connector", "config": {"connector.c
 
 # MAGIC %md
 # MAGIC 
-# MAGIC ### 4.1.3 Create Amazon Redshift
+# MAGIC ### TODO 4.1.3 Create Amazon Redshift
 # MAGIC 
 # MAGIC TODO
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC ## 4.2 Main Goal
+# MAGIC 
+# MAGIC Now we will consume stream from Kafka, and Transform it through Bronze, Silver and Gold Tables.
+# MAGIC Before that, I'll prepare directories in AWS S3 for our [Delta Lake](https://databricks.com/product/delta-lake-on-databricks) and fill data about our existing EC2 and services.
+
+# COMMAND ----------
+
+# MAGIC %python
+# MAGIC 
+# MAGIC dest_dir          = "dbfs:/mnt/result_bucket/ireland-prod/1884956493483554/task_4"
+# MAGIC checkpoints_dir   = f'{dest_dir}/checkpoints'
+# MAGIC 
+# MAGIC # tables/views paths
+# MAGIC table_path_bronze            = f'{dest_dir}/bronze/Bank_Holding'
+# MAGIC table_path_silver            = f'{dest_dir}/silver/Bank_Holding'
+# MAGIC table_path_gold              = f'{dest_dir}/gold/Bank_Holding'
+# MAGIC 
+# MAGIC # checkpoints paths - to know which file was already processed
+# MAGIC checkpoint_bronze            = f'{checkpoints_dir}/bronze/Bank_Holding'
+# MAGIC checkpoint_silver            = f'{checkpoints_dir}/silver/Bank_Holding'
+# MAGIC checkpoint_gold              = f'{checkpoints_dir}/gold/Bank_Holding'
+# MAGIC 
+# MAGIC # Create directories
+# MAGIC dbutils.fs.mkdirs(table_path_bronze)
+# MAGIC dbutils.fs.mkdirs(table_path_silver)
+# MAGIC dbutils.fs.mkdirs(table_path_gold)
+# MAGIC dbutils.fs.mkdirs(checkpoint_bronze)
+# MAGIC dbutils.fs.mkdirs(checkpoint_silver)
+# MAGIC dbutils.fs.mkdirs(checkpoint_gold)
+# MAGIC 
+# MAGIC # Infrastructure details
+# MAGIC EC2_IP      = '10.225.181.154'
+# MAGIC KAFKA_PORT  = 9092
+# MAGIC KAFKA_TOPIC = 'bankserver1.bank.holding'
+# MAGIC 
+# MAGIC 
+# MAGIC # Export environments variables (for shell usage)
+# MAGIC import os
+# MAGIC import subprocess
+# MAGIC import sys
+# MAGIC 
+# MAGIC os.environ['EC2_IP'] = EC2_IP
+# MAGIC os.environ['KAFKA_PORT'] = str(KAFKA_PORT)
+# MAGIC os.environ['KAFKA_TOPIC'] = str(KAFKA_TOPIC)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC ### 4.2.1 Create Bronze Table to gather data from Apache Kafka as it is
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC Check if you have connection to EC2 - in my case I had to open AWS Security Group.
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC 
+# MAGIC # ping -c 1 $EC2_IP
+# MAGIC sudo apt-get install -y netcat > /dev/null
+# MAGIC netcat -zv $EC2_IP $KAFKA_PORT
+
+# COMMAND ----------
+
+# MAGIC %python
+# MAGIC 
+# MAGIC # # Setup connection to Kafka
+# MAGIC # (spark.readStream
+# MAGIC #   .format("kafka")
+# MAGIC #   .option("kafka.bootstrap.servers", f'{EC2_IP}:{KAFKA_PORT}')  # comma separated list of broker:host
+# MAGIC # #   .option("kafka.ssl.truststore.location", <dbfs-truststore-location>) \
+# MAGIC # #   .option("kafka.ssl.keystore.location", <dbfs-keystore-location>) \
+# MAGIC # #   .option("kafka.ssl.keystore.password", dbutils.secrets.get(scope=<certificate-scope-name>,key=<keystore-password-key-name>)) \
+# MAGIC # #   .option("kafka.ssl.truststore.password", dbutils.secrets.get(scope=<certificate-scope-name>,key=<truststore-password-key-name>))
+# MAGIC #   .option("spark.kafka.consumer.cache.timeout", '10s')
+# MAGIC #   .option("subscribe", KAFKA_TOPIC)                             # comma separated list of topics
+# MAGIC #   .option("startingOffsets", "latest")                          # read data from the end of the stream 
+# MAGIC #   .option("minPartitions", "1")  
+# MAGIC #   .option("failOnDataLoss", "true")
+# MAGIC #   .load(table_path_bronze)                                      # f'{dest_dir}/bronze/Bank_Holding'
+# MAGIC #   .createOrReplaceTempView('Bronze_Bank_Holding'))
+# MAGIC 
+# MAGIC df = spark \
+# MAGIC   .readStream \
+# MAGIC   .format("kafka") \
+# MAGIC   .option("kafka.bootstrap.servers", f'{EC2_IP}:{KAFKA_PORT}') \
+# MAGIC   .option("subscribe", KAFKA_TOPIC)   \
+# MAGIC   .option("startingOffsets", "earliest") \
+# MAGIC   .load()
+# MAGIC #   .selectExpr()
+# MAGIC 
+# MAGIC df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+# MAGIC # display(df)
+# MAGIC # df.printSchema()
+# MAGIC # display(df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)"))
+
+# COMMAND ----------
+
+# MAGIC %python
+# MAGIC 
+# MAGIC df.writeStream.format('console').start
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC 
+# MAGIC sudo apt-get install -y kafkacat > /dev/null
+# MAGIC kafkacat -b $EC2_IP:$KAFKA_PORT -L
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC 
+# MAGIC telnet $EC2_IP $KAFKA_PORT
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC SELECT * FROM Bronze_Bank_Holding;
