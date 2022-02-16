@@ -257,10 +257,10 @@ docker run hello-world
 # MAGIC # (spark.readStream
 # MAGIC #   .format("kafka")
 # MAGIC #   .option("kafka.bootstrap.servers", f'{EC2_IP}:{KAFKA_PORT}')  # comma separated list of broker:host
-# MAGIC # #   .option("kafka.ssl.truststore.location", <dbfs-truststore-location>) \
-# MAGIC # #   .option("kafka.ssl.keystore.location", <dbfs-keystore-location>) \
-# MAGIC # #   .option("kafka.ssl.keystore.password", dbutils.secrets.get(scope=<certificate-scope-name>,key=<keystore-password-key-name>)) \
-# MAGIC # #   .option("kafka.ssl.truststore.password", dbutils.secrets.get(scope=<certificate-scope-name>,key=<truststore-password-key-name>))
+# MAGIC #   .option("kafka.ssl.truststore.location", <dbfs-truststore-location>) \
+# MAGIC #   .option("kafka.ssl.keystore.location", <dbfs-keystore-location>) \
+# MAGIC #   .option("kafka.ssl.keystore.password", dbutils.secrets.get(scope=<certificate-scope-name>,key=<keystore-password-key-name>)) \
+# MAGIC #   .option("kafka.ssl.truststore.password", dbutils.secrets.get(scope=<certificate-scope-name>,key=<truststore-password-key-name>))
 # MAGIC #   .option("spark.kafka.consumer.cache.timeout", '10s')
 # MAGIC #   .option("subscribe", KAFKA_TOPIC)                             # comma separated list of topics
 # MAGIC #   .option("startingOffsets", "latest")                          # read data from the end of the stream 
@@ -275,9 +275,10 @@ docker run hello-world
 # MAGIC   .option("kafka.bootstrap.servers", f'{EC2_IP}:{KAFKA_PORT}') \
 # MAGIC   .option("subscribe", KAFKA_TOPIC)   \
 # MAGIC   .option("startingOffsets", "earliest") \
-# MAGIC   .load()
+# MAGIC   .load() \
+# MAGIC   .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 # MAGIC 
-# MAGIC # display(df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)"))
+# MAGIC display(df)
 
 # COMMAND ----------
 
