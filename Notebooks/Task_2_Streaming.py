@@ -273,7 +273,7 @@
 
 # MAGIC %sql
 # MAGIC 
-# MAGIC SELECT * FROM Bronze_Stack_Overflow_Surveys;
+# MAGIC SELECT COUNT(*) FROM Bronze_Stack_Overflow_Surveys;
 
 # COMMAND ----------
 
