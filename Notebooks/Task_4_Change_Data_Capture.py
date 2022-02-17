@@ -27,6 +27,22 @@
 
 # COMMAND ----------
 
+# MAGIC %python
+# MAGIC 
+# MAGIC # Keys for user which has access to S3 buckets only ... yes I know I should use IAM roles... it's just an sandbox env...
+# MAGIC access_key = 'X'
+# MAGIC secret_key = 'XXXXX'
+# MAGIC 
+# MAGIC encoded_secret_key = secret_key.replace("/", "%2F")
+# MAGIC aws_bucket_name = "db-0e4f35b03d1d03c07c73eba18118850c-s3-root-bucket"
+# MAGIC mount_name = "result_bucket"
+# MAGIC 
+# MAGIC # dbutils.fs.unmount("/mnt/%s" % mount_name)
+# MAGIC dbutils.fs.mount("s3a://%s:%s@%s" % (access_key, encoded_secret_key, aws_bucket_name), "/mnt/%s" % mount_name)
+# MAGIC display(dbutils.fs.ls("/mnt/%s" % mount_name))
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC 
 # MAGIC ### 4.1.1 AWS IAM Role Setup for Cluster
@@ -96,7 +112,7 @@ docker run hello-world
 # MAGIC Now setup IP address of your EC2 instance, in my case it's '10.225.181.154' and export it.
 # MAGIC 
 # MAGIC ```bash
-# MAGIC export ADVERTISED_HOST_NAME=10.225.181.154
+# MAGIC export ADVERTISED_HOST_NAME=10.142.225.168
 # MAGIC ```
 # MAGIC 
 # MAGIC Copy below one by line (specially part of setting DB rows).
@@ -150,13 +166,235 @@ docker run hello-world
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC 
 # MAGIC In my case I've JSON data with information that 1 row has been added (I deduced it from `before` and `after` parts).
+
+# COMMAND ----------
+
+# MAGIC %json
+# MAGIC 
+# MAGIC {
+# MAGIC   "schema": {
+# MAGIC     "type": "struct",
+# MAGIC     "fields": [
+# MAGIC       {
+# MAGIC         "type": "struct",
+# MAGIC         "fields": [
+# MAGIC           {
+# MAGIC             "type": "int32",
+# MAGIC             "optional": false,
+# MAGIC             "field": "holding_id"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int32",
+# MAGIC             "optional": true,
+# MAGIC             "field": "user_id"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": true,
+# MAGIC             "field": "holding_stock"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int32",
+# MAGIC             "optional": true,
+# MAGIC             "field": "holding_quantity"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": true,
+# MAGIC             "name": "io.debezium.time.MicroTimestamp",
+# MAGIC             "version": 1,
+# MAGIC             "field": "datetime_created"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": true,
+# MAGIC             "name": "io.debezium.time.MicroTimestamp",
+# MAGIC             "version": 1,
+# MAGIC             "field": "datetime_updated"
+# MAGIC           }
+# MAGIC         ],
+# MAGIC         "optional": true,
+# MAGIC         "name": "bankserver1.bank.holding.Value",
+# MAGIC         "field": "before"
+# MAGIC       },
+# MAGIC       {
+# MAGIC         "type": "struct",
+# MAGIC         "fields": [
+# MAGIC           {
+# MAGIC             "type": "int32",
+# MAGIC             "optional": false,
+# MAGIC             "field": "holding_id"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int32",
+# MAGIC             "optional": true,
+# MAGIC             "field": "user_id"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": true,
+# MAGIC             "field": "holding_stock"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int32",
+# MAGIC             "optional": true,
+# MAGIC             "field": "holding_quantity"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": true,
+# MAGIC             "name": "io.debezium.time.MicroTimestamp",
+# MAGIC             "version": 1,
+# MAGIC             "field": "datetime_created"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": true,
+# MAGIC             "name": "io.debezium.time.MicroTimestamp",
+# MAGIC             "version": 1,
+# MAGIC             "field": "datetime_updated"
+# MAGIC           }
+# MAGIC         ],
+# MAGIC         "optional": true,
+# MAGIC         "name": "bankserver1.bank.holding.Value",
+# MAGIC         "field": "after"
+# MAGIC       },
+# MAGIC       {
+# MAGIC         "type": "struct",
+# MAGIC         "fields": [
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": false,
+# MAGIC             "field": "version"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": false,
+# MAGIC             "field": "connector"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": false,
+# MAGIC             "field": "name"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": false,
+# MAGIC             "field": "ts_ms"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": true,
+# MAGIC             "name": "io.debezium.data.Enum",
+# MAGIC             "version": 1,
+# MAGIC             "parameters": {
+# MAGIC               "allowed": "true,last,false"
+# MAGIC             },
+# MAGIC             "default": "false",
+# MAGIC             "field": "snapshot"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": false,
+# MAGIC             "field": "db"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": false,
+# MAGIC             "field": "schema"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": false,
+# MAGIC             "field": "table"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": true,
+# MAGIC             "field": "txId"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": true,
+# MAGIC             "field": "lsn"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": true,
+# MAGIC             "field": "xmin"
+# MAGIC           }
+# MAGIC         ],
+# MAGIC         "optional": false,
+# MAGIC         "name": "io.debezium.connector.postgresql.Source",
+# MAGIC         "field": "source"
+# MAGIC       },
+# MAGIC       {
+# MAGIC         "type": "string",
+# MAGIC         "optional": false,
+# MAGIC         "field": "op"
+# MAGIC       },
+# MAGIC       {
+# MAGIC         "type": "int64",
+# MAGIC         "optional": true,
+# MAGIC         "field": "ts_ms"
+# MAGIC       },
+# MAGIC       {
+# MAGIC         "type": "struct",
+# MAGIC         "fields": [
+# MAGIC           {
+# MAGIC             "type": "string",
+# MAGIC             "optional": false,
+# MAGIC             "field": "id"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": false,
+# MAGIC             "field": "total_order"
+# MAGIC           },
+# MAGIC           {
+# MAGIC             "type": "int64",
+# MAGIC             "optional": false,
+# MAGIC             "field": "data_collection_order"
+# MAGIC           }
+# MAGIC         ],
+# MAGIC         "optional": true,
+# MAGIC         "field": "transaction"
+# MAGIC       }
+# MAGIC     ],
+# MAGIC     "optional": false,
+# MAGIC     "name": "bankserver1.bank.holding.Envelope"
+# MAGIC   },
+# MAGIC   "payload": {
+# MAGIC     "before": null,
+# MAGIC     "after": {
+# MAGIC       "holding_id": 1000,
+# MAGIC       "user_id": 1,
+# MAGIC       "holding_stock": "VFIAX",
+# MAGIC       "holding_quantity": 10,
+# MAGIC       "datetime_created": 1645105576905445,
+# MAGIC       "datetime_updated": 1645105576905445
+# MAGIC     },
+# MAGIC     "source": {
+# MAGIC       "version": "1.1.2.Final",
+# MAGIC       "connector": "postgresql",
+# MAGIC       "name": "bankserver1",
+# MAGIC       "ts_ms": 1645105601680,
+# MAGIC       "snapshot": "last",
+# MAGIC       "db": "start_data_engineer",
+# MAGIC       "schema": "bank",
+# MAGIC       "table": "holding",
+# MAGIC       "txId": 492,
+# MAGIC       "lsn": 24605264,
+# MAGIC       "xmin": null
+# MAGIC     },
+# MAGIC     "op": "r",
+# MAGIC     "ts_ms": 1645105601684,
+# MAGIC     "transaction": null
+# MAGIC   }
+# MAGIC }
 
 # COMMAND ----------
 
@@ -179,7 +417,7 @@ docker run hello-world
 
 # MAGIC %python
 # MAGIC 
-# MAGIC dest_dir          = "dbfs:/mnt/result_bucket/ireland-prod/1884956493483554/task_4"
+# MAGIC dest_dir          = "dbfs:/mnt/result_bucket/ireland-prod/1911096808398203/task_4"
 # MAGIC checkpoints_dir   = f'{dest_dir}/checkpoints'
 # MAGIC 
 # MAGIC # tables/views paths
@@ -201,7 +439,7 @@ docker run hello-world
 # MAGIC dbutils.fs.mkdirs(checkpoint_gold)
 # MAGIC 
 # MAGIC # Infrastructure details
-# MAGIC EC2_IP      = '10.225.181.154'
+# MAGIC EC2_IP      = '10.142.225.168'
 # MAGIC KAFKA_PORT  = 9092
 # MAGIC KAFKA_TOPIC = 'bankserver1.bank.holding'
 # MAGIC 
@@ -239,7 +477,7 @@ docker run hello-world
 # MAGIC # kafkacat -b $EC2_IP:$KAFKA_PORT -L
 # MAGIC 
 # MAGIC # Test from Other EC2 (in the same AWS subnet)
-# MAGIC #export EC2_IP='10.225.181.154'
+# MAGIC #export EC2_IP='10.142.225.168'
 # MAGIC #export KAFKA_PORT=9092
 # MAGIC #export KAFKA_TOPIC='bankserver1.bank.holding'
 # MAGIC 
@@ -339,23 +577,125 @@ docker run hello-world
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC CREATE TABLE IF NOT EXISTS Silver_Bank_Holding_Parsed
+# MAGIC (
+# MAGIC   holding_id LONG,
+# MAGIC   user_id LONG,
+# MAGIC   holding_stock STRING,
+# MAGIC   holding_quantity LONG,
+# MAGIC   datetime_created TIMESTAMP,
+# MAGIC   datetime_updated TIMESTAMP
+# MAGIC )
+# MAGIC USING DELTA
+# MAGIC LOCATION 'dbfs:/mnt/result_bucket/ireland-prod/1911096808398203/task_4/silver/Bank_Holding';
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC Time for transformation.
+# MAGIC 
+# MAGIC Check the json structure from Kafka.
+# MAGIC 
+# MAGIC **There are 3 options:**
+# MAGIC 1. Rows can be created (When `before` is null and `after` is not empty)
+# MAGIC 1. Rows can be updated (When both `before' and `after` are not empty)
+# MAGIC 1. Rows can be deleted (When 'before' is not empty and 'after' is null)
+# MAGIC 
+# MAGIC **Note**
+# MAGIC I don't care about timestamps in this example. In real case I probably should think how to solve more than 1 update/delete request.
+
+# COMMAND ----------
+
+# MAGIC %sql
 # MAGIC 
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_0 AS
-# MAGIC SELECT json.payload
-# MAGIC FROM (
-# MAGIC   SELECT from_json(value, "payload String") json
-# MAGIC   FROM Bonze_Bank_Holding_Unparsed
-# MAGIC  )
-# MAGIC  
-# MAGIC SELECT * FROM Bank_Holding_Parsing_0;
+# MAGIC SELECT json2.before, json2.after
+# MAGIC FROM
+# MAGIC (
+# MAGIC   SELECT from_json(json.payload, "before String, after String") json2
+# MAGIC   FROM (
+# MAGIC     SELECT from_json(value, "payload String") json
+# MAGIC     FROM Bonze_Bank_Holding_Unparsed
+# MAGIC   )
+# MAGIC );
 # MAGIC 
-# MAGIC --     holding_id int,
-# MAGIC --     user_id int,
-# MAGIC --     holding_stock varchar(8),
-# MAGIC --     holding_quantity int,
-# MAGIC --     datetime_created timestamp,
-# MAGIC --     datetime_updated timestamp,
-# MAGIC --     primary key(holding_id)
+# MAGIC -- Now I have two 'columns' in Bank_Holding_Parsing_0. "before" and "after"
+# MAGIC 
+# MAGIC -- 1. Rows can be created (When before is null and after is not empty)
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_Before_Null_After_Not_Null AS
+# MAGIC SELECT before, after
+# MAGIC FROM Bank_Holding_Parsing_0
+# MAGIC WHERE before is NULL;
+# MAGIC 
+# MAGIC 
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_Inserts AS
+# MAGIC SELECT json_inserts.holding_id, json_inserts.user_id, json_inserts.holding_stock, json_inserts.holding_quantity, json_inserts.datetime_created, json_inserts.datetime_updated
+# MAGIC FROM
+# MAGIC (
+# MAGIC   SELECT from_json(after, "holding_id LONG, user_id LONG, holding_stock String, holding_quantity LONG, datetime_created TIMESTAMP, datetime_updated TIMESTAMP") json_inserts
+# MAGIC   FROM Bank_Holding_Parsing_Before_Null_After_Not_Null
+# MAGIC );
+# MAGIC 
+# MAGIC -- 2. Rows can be updated (When both before' andafter` are not empty)
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_Before_Not_Null_After_Not_Null AS
+# MAGIC SELECT before, after
+# MAGIC FROM Bank_Holding_Parsing_0
+# MAGIC WHERE before is not NULL and after is not NULL;
+# MAGIC 
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_Updates AS
+# MAGIC SELECT json_inserts.holding_id, json_inserts.user_id, json_inserts.holding_stock, json_inserts.holding_quantity, json_inserts.datetime_created, json_inserts.datetime_updated
+# MAGIC FROM
+# MAGIC (
+# MAGIC   SELECT from_json(after, "holding_id LONG, user_id LONG, holding_stock String, holding_quantity LONG, datetime_created TIMESTAMP, datetime_updated TIMESTAMP") json_inserts
+# MAGIC   FROM Bank_Holding_Parsing_Before_Not_Null_After_Not_Null
+# MAGIC );
+# MAGIC 
+# MAGIC -- 3. Rows can be deleted (When 'before' is not empty and 'after' is null)
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_Before_Not_Null_After_Null AS
+# MAGIC SELECT before, after
+# MAGIC FROM Bank_Holding_Parsing_0
+# MAGIC WHERE after is NULL;
+# MAGIC 
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_Deletes AS
+# MAGIC SELECT json_deletes.holding_id
+# MAGIC FROM
+# MAGIC (
+# MAGIC   SELECT from_json(after, "holding_id LONG") json_deletes
+# MAGIC   FROM Bank_Holding_Parsing_Before_Not_Null_After_Null
+# MAGIC );
+# MAGIC 
+# MAGIC -- Now I have three views for inserts, updates and deletes. First I'll execute upserts (inserts and updates)
+# MAGIC 
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_Upserts AS
+# MAGIC (
+# MAGIC   SELECT * FROM Bank_Holding_Parsing_Inserts
+# MAGIC   UNION ALL
+# MAGIC   SELECT * FROM Bank_Holding_Parsing_Updates
+# MAGIC );
+# MAGIC 
+# MAGIC MERGE INTO Silver_Bank_Holding_Parsed SILVER
+# MAGIC   USING Bank_Holding_Parsing_Upserts TMP
+# MAGIC   
+# MAGIC   ON SILVER.holding_id = TMP.holding_id
+# MAGIC   
+# MAGIC   WHEN MATCHED THEN
+# MAGIC     UPDATE SET *
+# MAGIC   
+# MAGIC   WHEN NOT MATCHED THEN
+# MAGIC --     INSERT *  -- I could use this instead of below
+# MAGIC     INSERT (holding_id, user_id, holding_stock, holding_quantity, datetime_created, datetime_updated)
+# MAGIC     VALUES (TMP.holding_id, TMP.user_id, TMP.holding_stock, TMP.holding_quantity, TMP.datetime_created, TMP.datetime_updated)
+# MAGIC ;
+# MAGIC     
+# MAGIC -- -- Time for deletes. I could use just row delete... but... why not using merge
+# MAGIC -- MERGE INTO Silver_Bank_Holding_Parsed SILVER
+# MAGIC --   USING Bank_Holding_Parsing_Deletes TMP
+# MAGIC   
+# MAGIC --   ON SILVER.holding_id = TMP.holding_id
+# MAGIC   
+# MAGIC --   WHEN MATCHED THEN
+# MAGIC --     DELETE
 
 # COMMAND ----------
 
