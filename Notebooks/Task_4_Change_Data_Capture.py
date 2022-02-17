@@ -538,35 +538,44 @@ docker run hello-world
 
 # MAGIC %python
 # MAGIC 
-# MAGIC df.writeStream \
-# MAGIC .format("delta") \
-# MAGIC .outputMode("append") \
-# MAGIC .option("mergeSchema", "true") \
-# MAGIC .option("checkpointLocation", checkpoint_bronze) \
-# MAGIC .start(table_path_bronze)
+# MAGIC query = (df.writeStream
+# MAGIC .format("delta")
+# MAGIC .outputMode("append")
+# MAGIC .option("mergeSchema", "true")
+# MAGIC .option("checkpointLocation", checkpoint_bronze)
+# MAGIC .trigger(once=True)
+# MAGIC .start(table_path_bronze))
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC DROP TABLE IF EXISTS Bronze_Bank_Holding_Unparsed;
+# MAGIC DROP TABLE IF EXISTS Silver_Bank_Holding_Parsed;
+# MAGIC DROP DATABASE IF EXISTS DB_Task_4;
+# MAGIC CREATE DATABASE IF NOT EXISTS DB_Task_4;
+# MAGIC USE DB_Task_4;
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC 
 # MAGIC Ok, files inside S3 (`/bronze/Bank_Holding` start being created).
-# MAGIC Now I'll create a Bronze Table (or View) and parse data to the Silver Table.
-
-# COMMAND ----------
-
-# MAGIC %python
-# MAGIC 
-# MAGIC bronze_read_df = spark \
-# MAGIC   .readStream \
-# MAGIC   .format('delta') \
-# MAGIC   .load(table_path_bronze) \
-# MAGIC   .createOrReplaceTempView('Bonze_Bank_Holding_Unparsed')
+# MAGIC Now I'll create a Bronze Table and parse data to the Silver Table.
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC 
-# MAGIC SELECT * FROM Bonze_Bank_Holding_Unparsed;
+# MAGIC CREATE TABLE Bronze_Bank_Holding_Unparsed
+# MAGIC USING DELTA
+# MAGIC LOCATION "/mnt/result_bucket/ireland-prod/1911096808398203/task_4/bronze/Bank_Holding";
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC SELECT * FROM Bronze_Bank_Holding_Unparsed;
 
 # COMMAND ----------
 
@@ -577,6 +586,9 @@ docker run hello-world
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC 
+# MAGIC DROP TABLE IF EXISTS Silver_Bank_Holding_Parsed;
+# MAGIC 
 # MAGIC CREATE TABLE IF NOT EXISTS Silver_Bank_Holding_Parsed
 # MAGIC (
 # MAGIC   holding_id LONG,
@@ -616,7 +628,7 @@ docker run hello-world
 # MAGIC   SELECT from_json(json.payload, "before String, after String") json2
 # MAGIC   FROM (
 # MAGIC     SELECT from_json(value, "payload String") json
-# MAGIC     FROM Bonze_Bank_Holding_Unparsed
+# MAGIC     FROM Bronze_Bank_Holding_Unparsed
 # MAGIC   )
 # MAGIC );
 # MAGIC 
@@ -688,14 +700,20 @@ docker run hello-world
 # MAGIC     VALUES (TMP.holding_id, TMP.user_id, TMP.holding_stock, TMP.holding_quantity, TMP.datetime_created, TMP.datetime_updated)
 # MAGIC ;
 # MAGIC     
-# MAGIC -- -- Time for deletes. I could use just row delete... but... why not using merge
-# MAGIC -- MERGE INTO Silver_Bank_Holding_Parsed SILVER
-# MAGIC --   USING Bank_Holding_Parsing_Deletes TMP
+# MAGIC -- Time for deletes. I could use just row SQL DELETE command ... but... why not using merge
+# MAGIC MERGE INTO Silver_Bank_Holding_Parsed SILVER
+# MAGIC   USING Bank_Holding_Parsing_Deletes TMP
 # MAGIC   
-# MAGIC --   ON SILVER.holding_id = TMP.holding_id
+# MAGIC   ON SILVER.holding_id = TMP.holding_id
 # MAGIC   
-# MAGIC --   WHEN MATCHED THEN
-# MAGIC --     DELETE
+# MAGIC   WHEN MATCHED THEN
+# MAGIC     DELETE
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC SELECT * FROM Silver_Bank_Holding_Parsed;
 
 # COMMAND ----------
 
