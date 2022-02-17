@@ -225,7 +225,7 @@ docker run hello-world
 
 # MAGIC %md
 # MAGIC 
-# MAGIC Check if you have connection to EC2 - in my case I had to open AWS Security Group.
+# MAGIC Check if you have connection to EC2 - in my case I had to open AWS Security Group. (And add env variable ADVERTISED_HOST_NAME while creating Kafka)
 
 # COMMAND ----------
 
@@ -235,8 +235,10 @@ docker run hello-world
 # MAGIC # sudo apt-get install -y netcat > /dev/null
 # MAGIC netcat -zv $EC2_IP $KAFKA_PORT
 # MAGIC 
+# MAGIC # sudo apt-get install -y kafkacat > /dev/null
+# MAGIC # kafkacat -b $EC2_IP:$KAFKA_PORT -L
 # MAGIC 
-# MAGIC # Test from Other EC2
+# MAGIC # Test from Other EC2 (in the same AWS subnet)
 # MAGIC #export EC2_IP='10.225.181.154'
 # MAGIC #export KAFKA_PORT=9092
 # MAGIC #export KAFKA_TOPIC='bankserver1.bank.holding'
@@ -267,8 +269,6 @@ docker run hello-world
 # MAGIC #   .option("minPartitions", "1")  
 # MAGIC #   .option("failOnDataLoss", "true")
 # MAGIC 
-# MAGIC 
-# MAGIC 
 # MAGIC df = spark \
 # MAGIC   .readStream \
 # MAGIC   .format("kafka") \
@@ -276,7 +276,7 @@ docker run hello-world
 # MAGIC   .option("subscribe", KAFKA_TOPIC)   \
 # MAGIC   .option("startingOffsets", "earliest") \
 # MAGIC   .load() \
-# MAGIC   .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+# MAGIC   .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)", "topic", "partition", "offset", "timestamp", "timestampType")
 # MAGIC 
 # MAGIC display(df)
 
@@ -284,7 +284,7 @@ docker run hello-world
 
 # MAGIC %md
 # MAGIC 
-# MAGIC Depends if we will use casting value to string or not ( `.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")` ), we will see BASE64 or JSON.
+# MAGIC Depends if we will use casting value to string or not, we will see BASE64 or JSON.
 # MAGIC 
 # MAGIC ![kafka_read_stream_not_parsed.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/kafka_read_stream_not_parsed.PNG)
 # MAGIC 
@@ -292,39 +292,55 @@ docker run hello-world
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC 
+# MAGIC Now I'll make a sink to store the data in our Delta Lake
+
+# COMMAND ----------
+
 # MAGIC %python
 # MAGIC 
-# MAGIC df.writeStream.format('console').start
+# MAGIC df.writeStream \
+# MAGIC .format("delta") \
+# MAGIC .outputMode("append") \
+# MAGIC .option("mergeSchema", "true") \
+# MAGIC .option("checkpointLocation", checkpoint_bronze) \
+# MAGIC .start(table_path_bronze)
 
 # COMMAND ----------
 
-# MAGIC %sh
+# MAGIC %md
 # MAGIC 
-# MAGIC sudo apt-get install -y kafkacat > /dev/null
-# MAGIC kafkacat -b $EC2_IP:$KAFKA_PORT -L
+# MAGIC Ok, files inside S3 (`/bronze/Bank_Holding` start being created).
+# MAGIC Now I'll create a Bronze Table (or View) and parse data to the Silver Table.
 
 # COMMAND ----------
 
-# MAGIC %sh
+# MAGIC %python
 # MAGIC 
-# MAGIC telnet $EC2_IP $KAFKA_PORT
+# MAGIC (spark.readStream
+# MAGIC   .format('delta')
+# MAGIC   .load(table_path_bronze) #  f'{dest_dir}/bronze/Bank_Holding'
+# MAGIC   .createOrReplaceTempView('Bonze_Bank_Holding_Unparsed'))
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC 
-# MAGIC SELECT * FROM Bronze_Bank_Holding;
+# MAGIC SELECT * FROM Bonze_Bank_Holding_Unparsed;
 
 # COMMAND ----------
 
-# MAGIC %python
+# MAGIC %md
 # MAGIC 
-# MAGIC TODO
+# MAGIC ### 4.2.2 Stream and transform data from Bronze Table to Silver Table. Silver table should contain parsed data
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC 
-# MAGIC # Write key-value data from a DataFrame to Kafka using a topic specified in the data
-# MAGIC ds = df \
-# MAGIC   .selectExpr("topic", "CAST(key AS STRING)", "CAST(value AS STRING)") \
-# MAGIC   .writeStream \
-# MAGIC   .format("kafka") \
-# MAGIC   .option("kafka.bootstrap.servers", "host1:port1,host2:port2") \
-# MAGIC   .start()
+# MAGIC ### 4.2.3 Stream and transform data from Silver Table to Gold Table. Gold table should contain data ready to consume by Amazon Redshift.
