@@ -318,10 +318,11 @@ docker run hello-world
 
 # MAGIC %python
 # MAGIC 
-# MAGIC (spark.readStream
-# MAGIC   .format('delta')
-# MAGIC   .load(table_path_bronze) #  f'{dest_dir}/bronze/Bank_Holding'
-# MAGIC   .createOrReplaceTempView('Bonze_Bank_Holding_Unparsed'))
+# MAGIC bronze_read_df = spark \
+# MAGIC   .readStream \
+# MAGIC   .format('delta') \
+# MAGIC   .load(table_path_bronze) \
+# MAGIC   .createOrReplaceTempView('Bonze_Bank_Holding_Unparsed')
 
 # COMMAND ----------
 
@@ -337,7 +338,24 @@ docker run hello-world
 
 # COMMAND ----------
 
-
+# MAGIC %sql
+# MAGIC 
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW Bank_Holding_Parsing_0 AS
+# MAGIC SELECT json.payload
+# MAGIC FROM (
+# MAGIC   SELECT from_json(value, "payload String") json
+# MAGIC   FROM Bonze_Bank_Holding_Unparsed
+# MAGIC  )
+# MAGIC  
+# MAGIC SELECT * FROM Bank_Holding_Parsing_0;
+# MAGIC 
+# MAGIC --     holding_id int,
+# MAGIC --     user_id int,
+# MAGIC --     holding_stock varchar(8),
+# MAGIC --     holding_quantity int,
+# MAGIC --     datetime_created timestamp,
+# MAGIC --     datetime_updated timestamp,
+# MAGIC --     primary key(holding_id)
 
 # COMMAND ----------
 
