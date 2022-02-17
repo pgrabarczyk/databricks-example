@@ -282,6 +282,16 @@ docker run hello-world
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC 
+# MAGIC Depends if we will use casting value to string or not ( `.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")` ), we will see BASE64 or JSON.
+# MAGIC 
+# MAGIC ![kafka_read_stream_not_parsed.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/kafka_read_stream_not_parsed.PNG)
+# MAGIC 
+# MAGIC ![kafka_read_stream_parsed.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/kafka_read_stream_parsed.PNG)
+
+# COMMAND ----------
+
 # MAGIC %python
 # MAGIC 
 # MAGIC df.writeStream.format('console').start
