@@ -10,3 +10,4 @@ This repository contains my tests while learning of databricks.com.
 
 ### Recomended links:
 * [[YouTube] How to Build a Cloud Data Platform - Workshop Series](https://www.youtube.com/playlist?list=PLTPXxbhUt-YWyPmBDlFffnSJNrqIyla5F)
+* [[YouTube] Databricks + Amazon Redshift](https://www.youtube.com/watch?v=mWv9NPjr1EM)
