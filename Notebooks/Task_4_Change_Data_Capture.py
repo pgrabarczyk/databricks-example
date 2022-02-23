@@ -15,9 +15,11 @@
 # MAGIC   * 4.1.2 Create AWS EC2 and setup PostgreSQL, Debezium, Apache Zookeeper, Apache Kafka
 # MAGIC   * 4.1.3 Create Amazon Redshift
 # MAGIC * 4.2 Main Goal
-# MAGIC   * 4.2.1 Create Bronze Table to gather data from Apache Kafka as it is
-# MAGIC   * 4.2.2 Stream and transform data from Bronze Table to Silver Table. Silver table should contain parsed data
-# MAGIC   * 4.2.3 Stream and transform data from Silver Table to Gold Table. Gold table should contain data ready to consume by Amazon Redshift.
+# MAGIC   * 4.2.1 Create the Bronze Table to gather data from Apache Kafka as it is
+# MAGIC   * 4.2.2 Copy and transform data from the Bronze Table to the Silver Table. Silver table should contains parsed data
+# MAGIC   * 4.2.3 Copy data from the Silver Table to the Amazon Redshift.
+# MAGIC     * 4.2.3.1 (Option 1) Use SQL to recreate Amazon Redshift table
+# MAGIC     * 4.2.3.2 (Option 2) Use Inserts, Updates, Deletes commands to update data
 
 # COMMAND ----------
 
@@ -30,7 +32,7 @@
 # MAGIC %python
 # MAGIC 
 # MAGIC # Keys for user which has access to S3 buckets only ... yes I know I should use IAM roles... it's just an sandbox env...
-# MAGIC access_key = 'X'
+# MAGIC access_key = 'XXXXX'
 # MAGIC secret_key = 'XXXXX'
 # MAGIC 
 # MAGIC encoded_secret_key = secret_key.replace("/", "%2F")
@@ -40,6 +42,10 @@
 # MAGIC # dbutils.fs.unmount("/mnt/%s" % mount_name)
 # MAGIC dbutils.fs.mount("s3a://%s:%s@%s" % (access_key, encoded_secret_key, aws_bucket_name), "/mnt/%s" % mount_name)
 # MAGIC display(dbutils.fs.ls("/mnt/%s" % mount_name))
+
+# COMMAND ----------
+
+# MAGIC %fs mounts
 
 # COMMAND ----------
 
@@ -400,9 +406,88 @@ docker run hello-world
 
 # MAGIC %md
 # MAGIC 
-# MAGIC ### TODO 4.1.3 Create Amazon Redshift
+# MAGIC ### 4.1.3 Create Amazon Redshift
 # MAGIC 
-# MAGIC TODO
+# MAGIC Time to create AWS Redshift.
+# MAGIC 
+# MAGIC For this PoC purpose I'll do it manually using AWS Console.
+# MAGIC 
+# MAGIC First I've prepared `cluster subnet group`. I've used the same VPC where databricks cluster is (It's not recomended by databricks for Production).
+# MAGIC I've used onlu private subnets (Without Route Tables to the Internet Gateway). I named it `pgrabarczyk-databricks-redshift`
+# MAGIC 
+# MAGIC I used `Free trial` version with name `pgrabarczyk-databricks-redshift` and fill my username and password. (`pgrabarczyk` / `pgrabarczyk-ABC-123`). Database name: `dev`.
+# MAGIC 
+# MAGIC I accepted `Sample data` to be automatically imported. (I'll use it for connection test)
+# MAGIC 
+# MAGIC IAM Role was generated to allow access to all S3 buckets.
+# MAGIC 
+# MAGIC (There was a bug for `Free trial` option. I wasn't able to set below data. I had to fill them on `Production` version, then back to `Free trial`).
+# MAGIC 
+# MAGIC * Network and security
+# MAGIC   * VPC - (As mentioned before - the same where cluster exists)
+# MAGIC   * Security Group allowed for All Traffic.
+# MAGIC   * Cluster subnet group - Created before `pgrabarczyk-databricks-redshift`
+# MAGIC   * Enhanced VPC routing - Disabled
+# MAGIC   * Publicly accessible - Disable
+# MAGIC * Database configurations
+# MAGIC   * Database name: `pgrabarczyk`
+# MAGIC   * Port: `5439`
+# MAGIC   * Parameter groups: `default.redshift-1.0`
+# MAGIC   * Encryption: Disabled
+# MAGIC * Maintenance
+# MAGIC   * [x] Use default maintenance window
+# MAGIC   * [x] Maintenance track - Current
+# MAGIC * Monitoring
+# MAGIC   * [x] CloudWatch alarm - No alarms
+# MAGIC * Backup
+# MAGIC   * [x] Manual snapshot retention period - Identifinitely
+# MAGIC   * [x] Configure cross-region snapshot - Disabled
+# MAGIC   * [x] Cluster relocation - No
+# MAGIC   
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC After few minutes you should be able to use `Redshift query editor v2` to see what is inside. 
+# MAGIC 
+# MAGIC ![redshift_console_v2.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/redshift_console_v2.PNG)
+# MAGIC 
+# MAGIC Time to get this data using Spark.
+# MAGIC 
+# MAGIC * I manually attached IAM Role for Spark EC2's.
+# MAGIC * I configured my cluster to install following libraries (which can be found [here](https://docs.aws.amazon.com/redshift/latest/mgmt/jdbc20-download-driver.html), probably only Redshift JDBC driver is needed):
+# MAGIC 
+# MAGIC ![redshift_jdbc_installed_libraries.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/redshift_jdbc_installed_libraries.PNG)
+
+# COMMAND ----------
+
+# MAGIC %python
+# MAGIC 
+# MAGIC # Redshift cluser was inside local subnets and it is already terminated - That's why I left here test variables and names :-)
+# MAGIC 
+# MAGIC redshift_jdbc_url = "jdbc:redshift://pgrabarczyk-databricks-redshift.crppnwpg747s.eu-west-1.redshift.amazonaws.com:5439/dev"
+# MAGIC redshisft_tempdir = "s3a://db-0e4f35b03d1d03c07c73eba18118850c-s3-root-bucket/ireland-prod/1911096808398203/task_4/Redshift/Bank_Holding/"
+# MAGIC user = "pgrabarczyk"
+# MAGIC password = "pgrabarczyk-ABC-123"
+# MAGIC 
+# MAGIC redshift_df = spark.read \
+# MAGIC   .format("com.databricks.spark.redshift") \
+# MAGIC   .option("url", redshift_jdbc_url) \
+# MAGIC   .option("forward_spark_s3_credentials", "true") \
+# MAGIC   .option("user", user) \
+# MAGIC   .option("password", password) \
+# MAGIC   .option("tempdir", redshisft_tempdir) \
+# MAGIC   .option("query", "SELECT userid, username FROM users") \
+# MAGIC   .load()
+# MAGIC 
+# MAGIC display(redshift_df)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC Ok, the Redshift Cluster works. We can start working on the Main Goal.
 
 # COMMAND ----------
 
@@ -423,20 +508,20 @@ docker run hello-world
 # MAGIC # tables/views paths
 # MAGIC table_path_bronze            = f'{dest_dir}/bronze/Bank_Holding'
 # MAGIC table_path_silver            = f'{dest_dir}/silver/Bank_Holding'
-# MAGIC table_path_gold              = f'{dest_dir}/gold/Bank_Holding'
+# MAGIC table_path_redshift          = f'{dest_dir}/Redshift/Bank_Holding'
 # MAGIC 
 # MAGIC # checkpoints paths - to know which file was already processed
 # MAGIC checkpoint_bronze            = f'{checkpoints_dir}/bronze/Bank_Holding'
 # MAGIC checkpoint_silver            = f'{checkpoints_dir}/silver/Bank_Holding'
-# MAGIC checkpoint_gold              = f'{checkpoints_dir}/gold/Bank_Holding'
+# MAGIC checkpoint_redshift          = f'{checkpoints_dir}/Redshift/Bank_Holding'
 # MAGIC 
 # MAGIC # Create directories
 # MAGIC dbutils.fs.mkdirs(table_path_bronze)
 # MAGIC dbutils.fs.mkdirs(table_path_silver)
-# MAGIC dbutils.fs.mkdirs(table_path_gold)
+# MAGIC dbutils.fs.mkdirs(table_path_redshift)
 # MAGIC dbutils.fs.mkdirs(checkpoint_bronze)
 # MAGIC dbutils.fs.mkdirs(checkpoint_silver)
-# MAGIC dbutils.fs.mkdirs(checkpoint_gold)
+# MAGIC dbutils.fs.mkdirs(checkpoint_redshift)
 # MAGIC 
 # MAGIC # Infrastructure details
 # MAGIC EC2_IP      = '10.142.225.168'
@@ -516,7 +601,7 @@ docker run hello-world
 # MAGIC   .load() \
 # MAGIC   .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)", "topic", "partition", "offset", "timestamp", "timestampType")
 # MAGIC 
-# MAGIC display(df)
+# MAGIC # display(df)
 
 # COMMAND ----------
 
@@ -550,9 +635,15 @@ docker run hello-world
 
 # MAGIC %sql
 # MAGIC 
-# MAGIC DROP TABLE IF EXISTS Bronze_Bank_Holding_Unparsed;
-# MAGIC DROP TABLE IF EXISTS Silver_Bank_Holding_Parsed;
-# MAGIC DROP DATABASE IF EXISTS DB_Task_4;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_0;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_before_not_null_after_not_null;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_before_not_null_after_null;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_before_null_after_not_null;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_deletes;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_inserts;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_updates;
+# MAGIC DROP TABLE IF EXISTS bank_holding_parsing_upserts;
+# MAGIC DROP DATABASE IF EXISTS DB_Task_4 CASCADE;
 # MAGIC CREATE DATABASE IF NOT EXISTS DB_Task_4;
 # MAGIC USE DB_Task_4;
 
@@ -719,4 +810,208 @@ docker run hello-world
 
 # MAGIC %md
 # MAGIC 
-# MAGIC ### 4.2.3 Stream and transform data from Silver Table to Gold Table. Gold table should contain data ready to consume by Amazon Redshift.
+# MAGIC ### 4.2.3 Copy data from the Silver Table to the Amazon Redshift.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC In this example I will not use Gold Tables. Let's say the Amazon Redshift needs all columns for its queries. Our last task is to copy data from the Silver Table to the table in Amazon Redshift.
+# MAGIC 
+# MAGIC I've used `Redshift query editor v2` to create a new table inside existing Database schema `dev`.
+# MAGIC 
+# MAGIC 
+# MAGIC ![redshift_console_v2_create_table.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/redshift_console_v2_create_table.PNG)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC Redshift table is ready. Time to copy the data.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC #### 4.2.3.1 (Option 1) Use SQL to recreate Amazon Redshift table
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC CREATE TABLE Bank_Holding
+# MAGIC USING com.databricks.spark.redshift
+# MAGIC OPTIONS (
+# MAGIC   url 'jdbc:redshift://pgrabarczyk-databricks-redshift.crppnwpg747s.eu-west-1.redshift.amazonaws.com:5439/dev',
+# MAGIC   forward_spark_s3_credentials "true",
+# MAGIC   user "pgrabarczyk",
+# MAGIC   password "pgrabarczyk-ABC-123",
+# MAGIC   tempdir 's3a://db-0e4f35b03d1d03c07c73eba18118850c-s3-root-bucket/ireland-prod/1911096808398203/task_4/Redshift/Bank_Holding/',
+# MAGIC   dbtable "Bank_Holding"
+# MAGIC ) AS SELECT holding_id, user_id, holding_stock, holding_quantity FROM Silver_Bank_Holding_Parsed;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT * FROM Bank_Holding;
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC Success! I've write data to the Redshift Table and I'm able to select it here and using `Redshift query editor v2`.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC #### 4.2.3.2 (Option 2) Use Inserts, Updates, Deletes commands to update data
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC I'll:
+# MAGIC * check what is inside `Bank_Holding` table
+# MAGIC * add a new row into PostgreSQL table
+# MAGIC * execute Notebook comands to update Bronze and Silver tables
+# MAGIC * Finally execute new merge command
+# MAGIC * Check the results
+# MAGIC 
+# MAGIC **NOTE**:
+# MAGIC I cannot use MERGE command because: "MERGE destination only supports Delta sources."
+
+# COMMAND ----------
+
+# MAGIC %sql SELECT COUNT(*) FROM Bank_Holding;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC # Jump onto EC2 with PostgreSQL using AWS Session Manager, then execute shell command:
+# MAGIC # PGPASSWORD=password pgcli -h localhost -p 5432 -U start_data_engineer
+# MAGIC # then execute SQL command:
+# MAGIC 
+# MAGIC insert into bank.holding values (2000, 2, 'SWDA', 50, now(), now());
+# MAGIC \q
+# MAGIC # then 'y'
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC * Execute `Cmd 24`
+# MAGIC * Execute `Cmd 32`
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC -- I cannot use MERGE command because redshift table is not a delta table and "MERGE destination only supports Delta sources."
+# MAGIC 
+# MAGIC INSERT INTO Bank_Holding (holding_id, user_id, holding_stock, holding_quantity)
+# MAGIC SELECT SILVER.holding_id, SILVER.user_id, SILVER.holding_stock, SILVER.holding_quantity
+# MAGIC FROM Silver_Bank_Holding_Parsed SILVER
+# MAGIC WHERE holding_id != SILVER.holding_id;
+# MAGIC 
+# MAGIC -- I cannot use UPDATE command because there is no FROM keyword in the syntax (https://docs.databricks.com/spark/latest/spark-sql/language-manual/delta-update.html)
+# MAGIC 
+# MAGIC -- UPDATE Bank_Holding 
+# MAGIC -- SET
+# MAGIC --   holding_id       = SILVER.holding_id,
+# MAGIC --   user_id          = SILVER.user_id,
+# MAGIC --   holding_stock    = SILVER.holding_stock,
+# MAGIC --   holding_quantity = SILVER.holding_quantity
+# MAGIC -- FROM Silver_Bank_Holding_Parsed SILVER
+# MAGIC -- WHERE holding_id = SILVER.holding_id;
+# MAGIC 
+# MAGIC -- DELETE FROM Bank_Holding REDSHIFT
+# MAGIC -- WHERE NOT EXISTS (
+# MAGIC --     SELECT Silver_Bank_Holding_Parsed SILVER
+# MAGIC --     FROM files
+# MAGIC --     WHERE REDSHIFT.holding_id=SILVER.holding_id
+# MAGIC -- )
+# MAGIC 
+# MAGIC -- DELETE REDSHIFT FROM Bank_Holding REDSHIFT
+# MAGIC --   LEFT JOIN Silver_Bank_Holding_Parsed SILVER ON SILVER.holding_id = REDSHIFT.holding_id 
+# MAGIC --       WHERE SILVER.holding_id IS NULL;
+# MAGIC 
+# MAGIC -- DELETE FROM Bank_Holding 
+# MAGIC --  WHERE NOT EXISTS(SELECT NULL
+# MAGIC --                     FROM Silver_Bank_Holding_Parsed SILVER
+# MAGIC --                    WHERE SILVER.holding_id = holding_id);
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC I wasn't able to execute SQL Update and Delete. I'll try to do it in Python.
+
+# COMMAND ----------
+
+# MAGIC %python
+# MAGIC 
+# MAGIC import subprocess
+# MAGIC 
+# MAGIC ### functions
+# MAGIC 
+# MAGIC def read_from_redshift_table(table_name: str): # -> pyspark.sql.dataframe.DataFrame:
+# MAGIC    return spark.read \
+# MAGIC       .format("com.databricks.spark.redshift") \
+# MAGIC       .option("url", redshift_jdbc_url) \
+# MAGIC       .option("forward_spark_s3_credentials", "true") \
+# MAGIC       .option("user", user) \
+# MAGIC       .option("password", password) \
+# MAGIC       .option("tempdir", redshisft_tempdir) \
+# MAGIC       .option("dbtable", table_name) \
+# MAGIC       .load()
+# MAGIC 
+# MAGIC def write_to_redshift_table(table_name: str, df):
+# MAGIC    df.write \
+# MAGIC       .format("com.databricks.spark.redshift") \
+# MAGIC       .option("url", redshift_jdbc_url) \
+# MAGIC       .option("forward_spark_s3_credentials", "true") \
+# MAGIC       .option("user", user) \
+# MAGIC       .option("password", password) \
+# MAGIC       .option("tempdir", redshisft_tempdir) \
+# MAGIC       .option("dbtable", table_name) \
+# MAGIC       .mode("error") \
+# MAGIC       .save()
+# MAGIC 
+# MAGIC ### Read existing Main Redshift Table
+# MAGIC df = read_from_redshift_table("Bank_Holding")
+# MAGIC 
+# MAGIC # type(df)
+# MAGIC # display(df.take(1))
+# MAGIC # display(df)
+# MAGIC # rows = df.collect()
+# MAGIC # display(rows)
+# MAGIC 
+# MAGIC ### Delete Temporary Redshift Table if exists 
+# MAGIC # TODO
+# MAGIC 
+# MAGIC ### Write to Temporary Redshift Table
+# MAGIC 
+# MAGIC write_to_redshift_table("Bank_Holding", df)
+# MAGIC 
+# MAGIC ### Delete Main Redshift Table if exists 
+# MAGIC # TODO
+# MAGIC 
+# MAGIC ### Save data to the Main Redshift Table 
+# MAGIC # TODO
+# MAGIC 
+# MAGIC ### Delete Temporary Redshift Table if exists 
+# MAGIC # TODO
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC Option 2 Failed.
+# MAGIC 
+# MAGIC I didn't found a possibility to `UPDATE` or `DELETE` 1 or more rows.
+# MAGIC 
+# MAGIC We can `INSERT` row(s), but for `UPDATE` / `DELETE` operation we need to recreate a Redshift Table.
+# MAGIC 
+# MAGIC Docs: [amazon-redshift](https://docs.databricks.com/data/data-sources/aws/amazon-redshift.html#guarantees-of-the-redshift-data-source-for-spark)
