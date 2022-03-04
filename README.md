@@ -1,4 +1,4 @@
-# databricks-sample
+# databricks-example
 
 This repository contains my tests while learning of databricks.com.
 
