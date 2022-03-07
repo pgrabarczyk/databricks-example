@@ -105,8 +105,8 @@
 # MAGIC I've created a job with new dedicated job cluster.
 # MAGIC 
 # MAGIC 
-# MAGIC ![Create_Job_2.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task2/Create_Job_2.PNG)
-# MAGIC ![Job_for_Task_2.2.4.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task2/Job_for_Task_2.2.4.PNG)
+# MAGIC ![Create_Job_2.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task2/Create_Job_2.PNG)
+# MAGIC ![Job_for_Task_2.2.4.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task2/Job_for_Task_2.2.4.PNG)
 
 # COMMAND ----------
 

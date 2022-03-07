@@ -15,7 +15,7 @@
 # MAGIC 
 # MAGIC (This task is just to show ETL, not have to make sence of business logic)
 # MAGIC 
-# MAGIC ![Databricks_sample-Task_1.png](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task1/Databricks_sample-Task_1.png)
+# MAGIC ![Databricks_sample-Task_1.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task1/Databricks_sample-Task_1.png)
 # MAGIC 
 # MAGIC ### Subtasks:
 # MAGIC 
@@ -123,7 +123,7 @@ $ aws s3 ls $S3_Test_Data/January_Flight_Delay_Prediction/
 # MAGIC 
 # MAGIC Sample data in S3 bucket looks like this:
 # MAGIC 
-# MAGIC ![s3_bucket_01.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task1/s3_bucket_01.PNG)
+# MAGIC ![s3_bucket_01.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task1/s3_bucket_01.PNG)
 
 # COMMAND ----------
 
@@ -217,7 +217,7 @@ $ aws s3 ls $S3_Test_Data/January_Flight_Delay_Prediction/
 # MAGIC 
 # MAGIC How the Bronze table looks like on S3? There are just raw `csv` files.
 # MAGIC 
-# MAGIC ![s3_bucket_02_bronze.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task1/s3_bucket_02_bronze.PNG)
+# MAGIC ![s3_bucket_02_bronze.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task1/s3_bucket_02_bronze.PNG)
 
 # COMMAND ----------
 
@@ -250,7 +250,7 @@ $ aws s3 ls $S3_Test_Data/January_Flight_Delay_Prediction/
 # MAGIC 
 # MAGIC Our Silver_Flight_Cancelled contains parquet files in S3.
 # MAGIC 
-# MAGIC ![s3_bucket_03_silver.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task1/s3_bucket_03_silver.PNG)
+# MAGIC ![s3_bucket_03_silver.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task1/s3_bucket_03_silver.PNG)
 
 # COMMAND ----------
 
@@ -321,4 +321,4 @@ $ aws s3 ls $S3_Test_Data/January_Flight_Delay_Prediction/
 # MAGIC 
 # MAGIC Go ahead and update the chart (click on `Plot Options` and set and use `ORIGIN` as Keys `CANCELLED` as Values).
 # MAGIC 
-# MAGIC ![cancelled_flights_charts.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task1/cancelled_flights_charts.PNG)
+# MAGIC ![cancelled_flights_charts.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task1/cancelled_flights_charts.PNG)

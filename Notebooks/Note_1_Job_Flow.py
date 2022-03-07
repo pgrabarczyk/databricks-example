@@ -10,4 +10,4 @@
 # MAGIC * Task may depends on 1 or multiple tasks, if so then it will be executed after dependends task(s)
 # MAGIC * Databricks.com draw DAG (Directed Acyclic Graph)
 # MAGIC 
-# MAGIC ![Job_Flow.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Note1/Job_Flow.PNG)
+# MAGIC ![Job_Flow.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Note1/Job_Flow.PNG)

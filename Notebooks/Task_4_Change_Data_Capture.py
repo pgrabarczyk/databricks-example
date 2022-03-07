@@ -7,7 +7,7 @@
 # MAGIC 
 # MAGIC **Stream 'changes' in DB through Databricks, transform it, then stream it to the Amazon Redshift**
 # MAGIC 
-# MAGIC ![Databricks_sample-Task_4.png](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/Databricks_sample-Task_4.png)
+# MAGIC ![Databricks_sample-Task_4.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task4/Databricks_sample-Task_4.png)
 # MAGIC 
 # MAGIC ### Subtasks:
 # MAGIC * 4.1 Preparation Goal
@@ -451,14 +451,14 @@ docker run hello-world
 # MAGIC 
 # MAGIC After few minutes you should be able to use `Redshift query editor v2` to see what is inside. 
 # MAGIC 
-# MAGIC ![redshift_console_v2.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/redshift_console_v2.PNG)
+# MAGIC ![redshift_console_v2.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task4/redshift_console_v2.PNG)
 # MAGIC 
 # MAGIC Time to get this data using Spark.
 # MAGIC 
 # MAGIC * I manually attached IAM Role for Spark EC2's.
 # MAGIC * I configured my cluster to install following libraries (which can be found [here](https://docs.aws.amazon.com/redshift/latest/mgmt/jdbc20-download-driver.html), probably only Redshift JDBC driver is needed):
 # MAGIC 
-# MAGIC ![redshift_jdbc_installed_libraries.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/redshift_jdbc_installed_libraries.PNG)
+# MAGIC ![redshift_jdbc_installed_libraries.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task4/redshift_jdbc_installed_libraries.PNG)
 
 # COMMAND ----------
 
@@ -609,9 +609,9 @@ docker run hello-world
 # MAGIC 
 # MAGIC Depends if we will use casting value to string or not, we will see BASE64 or JSON.
 # MAGIC 
-# MAGIC ![kafka_read_stream_not_parsed.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/kafka_read_stream_not_parsed.PNG)
+# MAGIC ![kafka_read_stream_not_parsed.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task4/kafka_read_stream_not_parsed.PNG)
 # MAGIC 
-# MAGIC ![kafka_read_stream_parsed.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/kafka_read_stream_parsed.PNG)
+# MAGIC ![kafka_read_stream_parsed.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task4/kafka_read_stream_parsed.PNG)
 
 # COMMAND ----------
 
@@ -821,7 +821,7 @@ docker run hello-world
 # MAGIC I've used `Redshift query editor v2` to create a new table inside existing Database schema `dev`.
 # MAGIC 
 # MAGIC 
-# MAGIC ![redshift_console_v2_create_table.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task4/redshift_console_v2_create_table.PNG)
+# MAGIC ![redshift_console_v2_create_table.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task4/redshift_console_v2_create_table.PNG)
 
 # COMMAND ----------
 

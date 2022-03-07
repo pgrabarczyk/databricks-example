@@ -122,8 +122,8 @@ Command took 11.47 seconds
 # MAGIC 
 # MAGIC | Table name  | Folders |
 # MAGIC |---|---|---|
-# MAGIC | `Crypto_Markets_Without_Partitioning` | ![Crypto_Markets_Without_Partitioning.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/TaskE1/Crypto_Markets_Without_Partitioning.PNG) |
-# MAGIC | `Crypto_Markets_With_Partitioning` | ![Crypto_Markets_With_Partitioning.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/TaskE1/Crypto_Markets_With_Partitioning.PNG) |
+# MAGIC | `Crypto_Markets_Without_Partitioning` | ![Crypto_Markets_Without_Partitioning.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/TaskE1/Crypto_Markets_Without_Partitioning.PNG) |
+# MAGIC | `Crypto_Markets_With_Partitioning` | ![Crypto_Markets_With_Partitioning.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/TaskE1/Crypto_Markets_With_Partitioning.PNG) |
 
 # COMMAND ----------
 

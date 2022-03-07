@@ -7,7 +7,7 @@
 # MAGIC 
 # MAGIC **Insert new data and update existing data**
 # MAGIC 
-# MAGIC ![Databricks_sample-Task_3.png](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task3/Databricks_sample-Task_3.png)
+# MAGIC ![Databricks_sample-Task_3.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task3/Databricks_sample-Task_3.png)
 # MAGIC 
 # MAGIC ### Subtasks:
 # MAGIC * 3.1 Preparation Goal
@@ -31,9 +31,9 @@
 # MAGIC ### 3.1.1 Load CSV files into S3
 # MAGIC 
 # MAGIC Files can be found here:
-# MAGIC * [part_000001](https://github.com/pgrabarczyk/databricks-sample/raw/master/data/Task3/survey_results_public_part_000001.csv)
-# MAGIC * [part_000002](https://github.com/pgrabarczyk/databricks-sample/raw/master/data/Task3/survey_results_public_part_000002.csv)
-# MAGIC * [part_000003](https://github.com/pgrabarczyk/databricks-sample/raw/master/data/Task3/survey_results_public_part_000003.csv)
+# MAGIC * [part_000001](https://github.com/pgrabarczyk/databricks-example/raw/master/data/Task3/survey_results_public_part_000001.csv)
+# MAGIC * [part_000002](https://github.com/pgrabarczyk/databricks-example/raw/master/data/Task3/survey_results_public_part_000002.csv)
+# MAGIC * [part_000003](https://github.com/pgrabarczyk/databricks-example/raw/master/data/Task3/survey_results_public_part_000003.csv)
 # MAGIC 
 # MAGIC Load them to the S3.
 

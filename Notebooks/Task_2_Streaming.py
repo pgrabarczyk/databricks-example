@@ -7,7 +7,7 @@
 # MAGIC 
 # MAGIC **Build ETL with streaming data (auto-update)**
 # MAGIC 
-# MAGIC ![Databricks_sample-Task_2.png](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task2/Databricks_sample-Task_2.png)
+# MAGIC ![Databricks_sample-Task_2.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task2/Databricks_sample-Task_2.png)
 # MAGIC 
 # MAGIC ### Subtasks:
 # MAGIC * 2.1 Preparation Goal - Simulate a stream
@@ -203,7 +203,7 @@
 # MAGIC CopyFileInstance.copy_next_file()
 # MAGIC ```
 # MAGIC 
-# MAGIC ![stream_producer.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task2/stream_producer.PNG)
+# MAGIC ![stream_producer.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task2/stream_producer.PNG)
 # MAGIC 
 # MAGIC Data inside stream getting bigger. We're simulating the real stream and now we're ready to start the Main Goal.
 
@@ -283,7 +283,7 @@
 # MAGIC 
 # MAGIC Anyway we can see files inside S3 bucket.
 # MAGIC 
-# MAGIC ![bronze_table.PNG](https://github.com/pgrabarczyk/databricks-sample/raw/master/images/Task2/bronze_table.PNG)
+# MAGIC ![bronze_table.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task2/bronze_table.PNG)
 
 # COMMAND ----------
 
