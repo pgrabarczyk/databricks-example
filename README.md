@@ -11,12 +11,23 @@ If you would like to go through them, then:
 
 ### Tasks:  
 * [Task_1_Build_sample_ETL](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_1_Build_sample_ETL.py)  
-* [Task_2_Streaming](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_2_Streaming.py)  
-* [Task_3_Insert_Update_Data](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_3_Insert_Update_Data.py)  
-* [Task_4_Change_Data_Capture](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_4_Change_Data_Capture.py) 
+  ![Databricks_sample-Task_1.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task1/Databricks_sample-Task_1.png)
+  
+
+* [Task_2_Streaming](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_2_Streaming.py)
+  ![Databricks_sample-Task_2.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task2/Databricks_sample-Task_2.png)
+  
+
+* [Task_3_Insert_Update_Data](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_3_Insert_Update_Data.py) 
+  ![Databricks_sample-Task_3.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task3/Databricks_sample-Task_3.png)
+  
+
+* [Task_4_Change_Data_Capture](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_4_Change_Data_Capture.py)
+  ![Databricks_sample-Task_4.png](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Task4/Databricks_sample-Task_4.png)
 
 ### Extra Tasks:  
 * [Note_1_Job_Flow](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Note_1_Job_Flow.py)  
+  ![Job_Flow.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Note1/Job_Flow.PNG)
 
 ### Notes: 
 * [Task_E1_Partitioning](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_E1_Partitioning.py)
