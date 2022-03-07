@@ -27,7 +27,7 @@ If you would like to go through them, then:
 
 ### Extra Tasks:  
 * [Note_1_Job_Flow](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Note_1_Job_Flow.py)  
-  ![Job_Flow.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Note1/Job_Flow.PNG)
+  ![Job_Flow_.PNG](https://github.com/pgrabarczyk/databricks-example/raw/master/images/Note1/Job_Flow_.PNG)
 
 ### Notes: 
 * [Task_E1_Partitioning](https://github.com/pgrabarczyk/databricks-example/blob/master/Notebooks/Task_E1_Partitioning.py)
